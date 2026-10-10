@@ -13,7 +13,10 @@ This repository is a Create React App single-page application written in TypeScr
 
 ## Coding Style & Naming Conventions
 
-Follow the existing TypeScript and React patterns, with two-space indentation and semicolons. Use PascalCase for React component files and names (for example, `Login.tsx`), camelCase for variables and functions, and descriptive kebab-case for CSS files (for example, `login-schema.ts`). Keep UI components in `src/components/`, shared validation/configuration in `src/config/`, and styles in `src/styles/`. The project uses the `react-app` and `react-app/jest` ESLint configurations; do not add formatting or lint dependencies without need.
+- Follow the existing TypeScript and React patterns, with two-space indentation and semicolons.
+- Use PascalCase for React component files and names (for example, `Login.tsx`), camelCase for hooks, descriptive kebab-case for config files and functions (for example, `login-schema.ts`), and uppercase for constants.
+- Keep UI components in `src/components/`, hooks in `src/hooks`, util functions in `src/utils`, validation/configuration in `src/config/zod`, constants in `src/config/constants`, api functions in `src/api` and styles in `src/styles/`.
+- The project uses the `react-app` and `react-app/jest` ESLint configurations; do not add formatting or lint dependencies without need.
 
 ## Testing Guidelines
 
