@@ -1,4 +1,5 @@
 import { FormEvent, useState } from "react";
+import { loginSchema } from "../config/login-schema";
 import "../styles/Login.css";
 
 type TLoginFormErrors = {
@@ -18,14 +19,22 @@ function Login({ onLoginSuccess }: TLoginProps) {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const nextErrors: TLoginFormErrors = {};
-    if (!email.trim()) nextErrors.email = "Введіть email";
-    if (!password) nextErrors.password = "Введіть пароль";
-    setErrors(nextErrors);
+    const result = loginSchema.safeParse({ email, password });
 
-    if (Object.keys(nextErrors).length === 0) {
-      onLoginSuccess();
+    if (!result.success) {
+      const nextErrors: TLoginFormErrors = {};
+      result.error.issues.forEach(issue => {
+        const field = issue.path[0];
+        if ((field === "email" || field === "password") && !nextErrors[field]) {
+          nextErrors[field] = issue.message;
+        }
+      });
+      setErrors(nextErrors);
+      return;
     }
+
+    setErrors({});
+    onLoginSuccess();
   };
 
   return (
