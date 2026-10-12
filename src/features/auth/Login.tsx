@@ -1,6 +1,6 @@
 import { FormEvent, useState } from "react";
-import { loginSchema } from "../config/login-schema";
-import "../styles/Login.css";
+import { loginSchema } from "./login-schema";
+import "./Login.css";
 
 type TLoginFormErrors = {
   email?: string;

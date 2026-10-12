@@ -1,6 +1,6 @@
 import { useState } from "react";
-import Login from "./Login";
-import WebhooksDataTable from "./WebhooksDataTable";
+import Login from "../features/auth/Login";
+import WebhooksDataTable from "../features/webhooks/WebhooksDataTable";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

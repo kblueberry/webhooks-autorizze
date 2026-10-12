@@ -1,5 +1,30 @@
 # Getting Started with Create React App
 
+## Project structure
+
+The source is organized around application setup and user-facing features:
+
+```text
+src/
+├── app/                    # Application composition and app-level tests
+├── features/
+│   ├── auth/               # Login UI, validation, and feature styles
+│   └── webhooks/           # Webhooks list/table UI
+├── mocks/                  # Shared MSW handlers and browser/node setup
+├── styles/                 # Global styles
+├── index.tsx               # Browser entry point
+└── reportWebVitals.ts
+```
+
+Keep feature-specific code together inside its feature folder. When a feature
+grows, add its `api/`, `hooks/`, `types/`, or `components/` subfolders there;
+avoid creating empty generic folders before they have a clear owner. Put code
+in a shared folder only when multiple features actually use it. `app/` should
+compose features and own application-wide providers and routing, while
+`mocks/` remains the development/test API boundary.
+
+## Available Scripts
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
