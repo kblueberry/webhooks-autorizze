@@ -1,0 +1,1 @@
+export const FINGERPRINT_KEY = "webhooks-fingerprint";

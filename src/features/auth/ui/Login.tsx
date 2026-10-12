@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
-import { loginSchema } from "./login-schema";
+import { loginSchema } from "../config/login-schema";
 import "./Login.css";
+import { LoginResult } from "../types";
 
 type TLoginFormErrors = {
   email?: string;
@@ -8,22 +9,24 @@ type TLoginFormErrors = {
 };
 
 type TLoginProps = {
-  onLoginSuccess: () => void;
+  onLogin: (email: string, password: string) => Promise<LoginResult>;
+  isLoading: boolean;
 };
 
-function Login({ onLoginSuccess }: TLoginProps) {
+export function Login({ onLogin, isLoading }: TLoginProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<TLoginFormErrors>({});
+  const [formError, setFormError] = useState("");
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const result = loginSchema.safeParse({ email, password });
+    const validation = loginSchema.safeParse({ email, password });
 
-    if (!result.success) {
+    if (!validation.success) {
       const nextErrors: TLoginFormErrors = {};
-      result.error.issues.forEach(issue => {
+      validation.error.issues.forEach(issue => {
         const field = issue.path[0];
         if ((field === "email" || field === "password") && !nextErrors[field]) {
           nextErrors[field] = issue.message;
@@ -34,7 +37,10 @@ function Login({ onLoginSuccess }: TLoginProps) {
     }
 
     setErrors({});
-    onLoginSuccess();
+    setFormError("");
+    const loginResult = await onLogin(email, password);
+    if (loginResult.fieldErrors) setErrors(loginResult.fieldErrors);
+    if (loginResult.message) setFormError(loginResult.message);
   };
 
   return (
@@ -88,9 +94,10 @@ function Login({ onLoginSuccess }: TLoginProps) {
             )}
           </div>
 
-          <button className="login-button" type="submit">
-            Увійти <span aria-hidden="true">→</span>
+          <button className="login-button" type="submit" disabled={isLoading}>
+            {isLoading ? "Вхід…" : <>Увійти <span aria-hidden="true">→</span></>}
           </button>
+          {formError && <p className="field-error" role="alert">{formError}</p>}
         </form>
         <p className="login-note">Безпечний доступ до ваших вебхуків</p>
       </section>
@@ -98,4 +105,3 @@ function Login({ onLoginSuccess }: TLoginProps) {
   );
 }
 
-export default Login;
