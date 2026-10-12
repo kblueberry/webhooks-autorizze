@@ -1,5 +1,5 @@
 import { useAuth } from "../../../features/auth";
-import { WebhooksDataTable } from "../../../features/webhooks/WebhooksDataTable";
+import { WebhooksDataTable } from "../../../features/webhooks";
 
 export function WebhooksPage() {
   const { logout } = useAuth();

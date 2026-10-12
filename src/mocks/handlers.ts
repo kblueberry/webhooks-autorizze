@@ -60,11 +60,27 @@ export const handlers = [
     return HttpResponse.json({ id: "user_001", email: "demo@example.com", first_name: "Demo", last_name: "User", name: "Demo User" });
   }),
 
-  http.get("/api/webhooks", () => {
+  http.get("/v1/webhooks", ({ request }) => {
     if (!sessionIsValid()) return HttpResponse.json({}, { status: 401 });
-    return HttpResponse.json([
-      { id: "wh_001", event: "user.created", status: "delivered" },
-      { id: "wh_002", event: "order.updated", status: "pending" },
-    ]);
+    const records = [
+      { id: "wh_001", name: "User created", url: "https://example.com/hooks/users" },
+      { id: "wh_002", name: "Order updated", url: "https://example.com/hooks/orders" },
+      { id: "wh_003", name: "Payment received", url: "https://example.com/hooks/payments" },
+      { id: "wh_004", name: "Subscription canceled", url: "https://example.com/hooks/subscriptions" },
+      { id: "wh_005", name: "Invoice paid", url: "https://example.com/hooks/invoices" },
+      { id: "wh_006", name: "User deleted", url: "https://example.com/hooks/users/deleted" },
+      { id: "wh_007", name: "Shipment created", url: "https://example.com/hooks/shipments" },
+      { id: "wh_008", name: "Refund issued", url: "https://example.com/hooks/refunds" },
+      { id: "wh_009", name: "Cart abandoned", url: "https://example.com/hooks/carts" },
+      { id: "wh_010", name: "Product updated", url: "https://example.com/hooks/products" },
+      { id: "wh_011", name: "Inventory changed", url: "https://example.com/hooks/inventory" },
+    ];
+    const params = new URL(request.url).searchParams;
+    const page = Math.max(1, Number(params.get("page")) || 1);
+    const limit = Math.max(1, Number(params.get("limit")) || 10);
+    const search = (params.get("search") || "").toLowerCase();
+    const filtered = records.filter(webhook => `${webhook.name} ${webhook.url}`.toLowerCase().includes(search));
+    const offset = (page - 1) * limit;
+    return HttpResponse.json({ items: filtered.slice(offset, offset + limit), total: filtered.length });
   }),
 ];
