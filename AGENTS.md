@@ -16,7 +16,7 @@ This repository is a Create React App single-page application written in TypeScr
 - Follow the existing TypeScript and React patterns, with two-space indentation and semicolons.
 - Use PascalCase for React component files and names (for example, `Login.tsx`), camelCase for hooks, descriptive kebab-case for config files and functions (for example, `login-schema.ts`), and uppercase for constants.
 - Add feature UI components in `src/features/{feature_name}/ui/`, hooks in `src/features/{feature_name}/hooks/`, validation/configuration/constants in `src/features/{feature_name}/config/`, api functions in `src/mocks/` and styles in `src/styles/`.
-- All files used externally outside the `feature/{feature_name}/` level are exported via `feature/{feature_name}/` index.ts file
+- All files used externally outside the `src/features/{feature_name}/` level are exported via `src/features/{feature_name}/` index.ts file
 - The project uses the `react-app` and `react-app/jest` ESLint configurations; do not add formatting or lint dependencies without need.
 
 ## Testing Guidelines
