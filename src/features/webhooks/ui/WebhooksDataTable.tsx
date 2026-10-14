@@ -33,7 +33,7 @@ export function WebhooksDataTable({ onLogout }: { onLogout: () => Promise<void> 
           <tbody>
             {loading ? <tr><td colSpan={3}>Завантаження…</td></tr> : webhooks.length === 0 ? <tr><td colSpan={3}>Вебхуків не знайдено.</td></tr> : webhooks.map(webhook => (
               <tr key={webhook.id}>
-                <td>{webhook.name}</td><td><a href={webhook.url} target="_blank" rel="noreferrer">{webhook.url}</a></td>
+                <td>{webhook.name}</td><td>{isHttpUrl(webhook.url) ? <a href={webhook.url} target="_blank" rel="noopener noreferrer">{webhook.url}</a> : webhook.url}</td>
                 <td><button type="button" className="webhooks-edit" onClick={() => undefined}>Редагувати</button></td>
               </tr>
             ))}
@@ -47,4 +47,13 @@ export function WebhooksDataTable({ onLogout }: { onLogout: () => Promise<void> 
       </nav>
     </main>
   );
+}
+
+function isHttpUrl(value: string): boolean {
+  try {
+    const protocol = new URL(value).protocol;
+    return protocol === "http:" || protocol === "https:";
+  } catch {
+    return false;
+  }
 }

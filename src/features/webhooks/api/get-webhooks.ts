@@ -21,5 +21,12 @@ export async function getWebhooks({ page, limit, search = "" }: TGetWebhooksPara
 
   if (response.status === 401) throw new UnauthorizedError();
   if (!response.ok) throw new Error("Не вдалося завантажити вебхуки.");
-  return response.json() as Promise<TWebhookPaginatedDataResponse>;
+  const result: unknown = await response.json();
+  if (!result || typeof result !== "object") throw new Error("Invalid webhooks response");
+
+  const data = result as Partial<TWebhookPaginatedDataResponse>;
+  if (!Array.isArray(data.items) || !Number.isFinite(data.total) || (data.total as number) < 0) {
+    throw new Error("Invalid webhooks response");
+  }
+  return data as TWebhookPaginatedDataResponse;
 }

@@ -5,12 +5,20 @@ import { apiFetch } from "../api/api-fetch";
 import { getCurrentUser } from "../api/get-current-user";
 
 function getFingerprint(): string {
-  const stored = window.localStorage.getItem(FINGERPRINT_KEY);
-  if (stored && /^[a-f0-9]{32}$/i.test(stored)) return stored;
+  try {
+    const stored = window.localStorage.getItem(FINGERPRINT_KEY);
+    if (stored && /^[a-f0-9]{32}$/i.test(stored)) return stored;
+  } catch {
+    // Storage can be unavailable in restricted browser contexts.
+  }
   const bytes = new Uint8Array(16);
   window.crypto.getRandomValues(bytes);
   const fingerprint = Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
-  window.localStorage.setItem(FINGERPRINT_KEY, fingerprint);
+  try {
+    window.localStorage.setItem(FINGERPRINT_KEY, fingerprint);
+  } catch {
+    // Keep the generated fingerprint for this request when persistence is blocked.
+  }
   return fingerprint;
 }
 
@@ -81,8 +89,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    const fingerprint = getFingerprint();
     try {
+      const fingerprint = getFingerprint();
       await apiFetch("/auth/token/revoke", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

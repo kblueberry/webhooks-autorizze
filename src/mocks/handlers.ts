@@ -1,4 +1,5 @@
 import { http, HttpResponse } from "msw";
+import { TWebhook, TWebhookPaginatedDataResponse } from "../features/webhooks/types";
 
 const CSRF_TOKEN = "mock-csrf-token";
 const SESSION_DURATION_MS = 30_000;
@@ -62,25 +63,43 @@ export const handlers = [
 
   http.get("/v1/webhooks", ({ request }) => {
     if (!sessionIsValid()) return HttpResponse.json({}, { status: 401 });
-    const records = [
-      { id: "wh_001", name: "User created", url: "https://example.com/hooks/users" },
-      { id: "wh_002", name: "Order updated", url: "https://example.com/hooks/orders" },
-      { id: "wh_003", name: "Payment received", url: "https://example.com/hooks/payments" },
-      { id: "wh_004", name: "Subscription canceled", url: "https://example.com/hooks/subscriptions" },
-      { id: "wh_005", name: "Invoice paid", url: "https://example.com/hooks/invoices" },
-      { id: "wh_006", name: "User deleted", url: "https://example.com/hooks/users/deleted" },
-      { id: "wh_007", name: "Shipment created", url: "https://example.com/hooks/shipments" },
-      { id: "wh_008", name: "Refund issued", url: "https://example.com/hooks/refunds" },
-      { id: "wh_009", name: "Cart abandoned", url: "https://example.com/hooks/carts" },
-      { id: "wh_010", name: "Product updated", url: "https://example.com/hooks/products" },
-      { id: "wh_011", name: "Inventory changed", url: "https://example.com/hooks/inventory" },
+    const records: TWebhook[] = [
+      { id: "wh_001", name: "User created", url: "https://example.com/hooks/users", active: true, created_at: "2025-01-06T09:00:00.000Z" },
+      { id: "wh_002", name: "Order updated", url: "https://example.com/hooks/orders", active: true, created_at: "2025-01-07T10:15:00.000Z" },
+      { id: "wh_003", name: "Payment received", url: "https://example.com/hooks/payments", active: true, created_at: "2025-01-08T11:30:00.000Z" },
+      { id: "wh_004", name: "Subscription canceled", url: "https://example.com/hooks/subscriptions", active: false, created_at: "2025-01-09T12:45:00.000Z" },
+      { id: "wh_005", name: "Invoice paid", url: "https://example.com/hooks/invoices", active: true, created_at: "2025-01-10T14:00:00.000Z" },
+      { id: "wh_006", name: "User deleted", url: "https://example.com/hooks/users/deleted", active: false, created_at: "2025-01-11T15:15:00.000Z" },
+      { id: "wh_007", name: "Shipment created", url: "https://example.com/hooks/shipments", active: true, created_at: "2025-01-12T16:30:00.000Z" },
+      { id: "wh_008", name: "Refund issued", url: "https://example.com/hooks/refunds", active: true, created_at: "2025-01-13T17:45:00.000Z" },
+      { id: "wh_009", name: "Cart abandoned", url: "https://example.com/hooks/carts", active: false, created_at: "2025-01-14T08:00:00.000Z" },
+      { id: "wh_010", name: "Product updated", url: "https://example.com/hooks/products", active: true, created_at: "2025-01-15T09:15:00.000Z" },
+      { id: "wh_011", name: "Inventory changed", url: "https://example.com/hooks/inventory", active: true, created_at: "2025-01-16T10:30:00.000Z" },
+      { id: "wh_012", name: "Customer updated", url: "https://example.com/hooks/customers", active: true, created_at: "2025-01-17T11:45:00.000Z" },
+      { id: "wh_013", name: "Address verified", url: "https://example.com/hooks/addresses/verified", active: false, created_at: "2025-01-18T13:00:00.000Z" },
+      { id: "wh_014", name: "Return requested", url: "https://example.com/hooks/returns", active: true, created_at: "2025-01-19T14:15:00.000Z" },
+      { id: "wh_015", name: "Coupon redeemed", url: "https://example.com/hooks/coupons/redeemed", active: true, created_at: "2025-01-20T15:30:00.000Z" },
+      { id: "wh_016", name: "Review submitted", url: "https://example.com/hooks/reviews", active: false, created_at: "2025-01-21T16:45:00.000Z" },
+      { id: "wh_017", name: "Warehouse updated", url: "https://example.com/hooks/warehouses", active: true, created_at: "2025-01-22T08:00:00.000Z" },
+      { id: "wh_018", name: "Gift card issued", url: "https://example.com/hooks/gift-cards/issued", active: true, created_at: "2025-01-23T09:15:00.000Z" },
+      { id: "wh_019", name: "Delivery delayed", url: "https://example.com/hooks/deliveries/delayed", active: false, created_at: "2025-01-24T10:30:00.000Z" },
+      { id: "wh_020", name: "Account suspended", url: "https://example.com/hooks/accounts/suspended", active: true, created_at: "2025-01-25T11:45:00.000Z" },
+      { id: "wh_021", name: "Payout completed", url: "https://example.com/hooks/payouts", active: true, created_at: "2025-01-26T13:00:00.000Z" },
     ];
     const params = new URL(request.url).searchParams;
     const page = Math.max(1, Number(params.get("page")) || 1);
     const limit = Math.max(1, Number(params.get("limit")) || 10);
     const search = (params.get("search") || "").toLowerCase();
     const filtered = records.filter(webhook => `${webhook.name} ${webhook.url}`.toLowerCase().includes(search));
-    const offset = (page - 1) * limit;
-    return HttpResponse.json({ items: filtered.slice(offset, offset + limit), total: filtered.length });
+    const lastPage = Math.max(1, Math.ceil(filtered.length / limit));
+    const currentPage = Math.min(page, lastPage);
+    const offset = (currentPage - 1) * limit;
+    const response: TWebhookPaginatedDataResponse = {
+      items: filtered.slice(offset, offset + limit),
+      total: filtered.length,
+      pages: { current: currentPage, last: lastPage },
+      results: { total: filtered.length, limitation: limit },
+    };
+    return HttpResponse.json(response);
   }),
 ];

@@ -20,9 +20,18 @@ export function useWebhooks(onLogout: () => Promise<void>) {
     getWebhooks({ page, limit: PAGE_SIZE, search })
       .then(result => {
         if (!active) return;
+        const nextLastPage = Number.isInteger(result.pages.last) && result.pages.last > 0
+          ? result.pages.last
+          : Math.max(1, Math.ceil(result.total / PAGE_SIZE));
+        const nextPage = Number.isInteger(result.pages.current) && result.pages.current > 0
+          ? Math.min(result.pages.current, nextLastPage)
+          : Math.min(page, nextLastPage);
         setWebhooks(result.items);
-        setPage(result.pages?.current ?? page);
-        setLastPage(result.pages?.last ?? Math.max(1, Math.ceil(result.total / PAGE_SIZE)));
+        setLastPage(nextLastPage);
+        if (nextPage !== page) {
+          setPage(nextPage);
+          return;
+        }
       })
       .catch(reason => {
         if (!active) return;
