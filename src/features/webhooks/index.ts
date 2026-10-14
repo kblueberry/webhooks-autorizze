@@ -1,4 +1,5 @@
 export { WebhooksDataTable } from "./ui/WebhooksDataTable";
 export { getWebhooks, UnauthorizedError } from "./api/get-webhooks";
-export type { GetWebhooksParams } from "./api/get-webhooks";
-export type { Webhook, WebhookList } from "./types";
+export { useWebhooks } from "./hooks/useWebhooks";
+export type { TGetWebhooksParams } from "./api/get-webhooks";
+export type { TWebhook, TWebhookPaginatedDataResponse } from "./types";
