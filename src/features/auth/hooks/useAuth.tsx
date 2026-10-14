@@ -14,22 +14,21 @@ function getFingerprint(): string {
   return fingerprint;
 }
 
-
-type AuthStatus = "checking" | "authenticated" | "unauthenticated";
-type AuthContextValue = {
+type TAuthStatus = "checking" | "authenticated" | "unauthenticated";
+type TAuthContextValue = {
   user: User | null;
-  status: AuthStatus;
+  status: TAuthStatus;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<LoginResult>;
   logout: () => Promise<void>;
 };
 
-const AuthContext = createContext<AuthContextValue | null>(null);
+const AuthContext = createContext<TAuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [status, setStatus] = useState<AuthStatus>("checking");
+  const [status, setStatus] = useState<TAuthStatus>("checking");
 
   useEffect(() => {
     let active = true;
