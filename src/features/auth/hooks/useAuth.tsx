@@ -1,10 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
 import { LoginResult, User } from "../types";
 import { FINGERPRINT_KEY } from "../config/constants";
-
-let csrfToken: string | null = null;
-let csrfRequest: Promise<string> | null = null;
-let rotateRequest: Promise<boolean> | null = null;
+import { apiFetch } from "../api/api-fetch";
+import { getCurrentUser } from "../api/get-current-user";
 
 function getFingerprint(): string {
   const stored = window.localStorage.getItem(FINGERPRINT_KEY);
@@ -16,56 +14,6 @@ function getFingerprint(): string {
   return fingerprint;
 }
 
-async function getCsrfToken(): Promise<string> {
-  if (csrfToken) return csrfToken;
-  if (!csrfRequest) {
-    csrfRequest = fetch("/csrf", { headers: { "X-Requested-With": "XMLHttpRequest" } })
-      .then(response => {
-        if (!response.ok && response.status !== 204) throw new Error("Could not initialize CSRF protection");
-        const token = response.headers.get("X-CSRF-TOKEN");
-        if (!token) throw new Error("CSRF token missing from response");
-        csrfToken = token;
-        return token;
-      })
-      .finally(() => { csrfRequest = null; });
-  }
-  return csrfRequest;
-}
-
-async function apiFetch(path: string, init: RequestInit = {}, retryCsrf = true): Promise<Response> {
-  const method = (init.method || "GET").toUpperCase();
-  const headers = new Headers(init.headers);
-  headers.set("X-Requested-With", "XMLHttpRequest");
-  if (method === "POST" || method === "PUT") headers.set("X-CSRF-TOKEN", await getCsrfToken());
-  const response = await fetch(path, { ...init, headers });
-  if (response.status === 419 && retryCsrf) {
-    csrfToken = null;
-    await getCsrfToken();
-    return apiFetch(path, init, false);
-  }
-  return response;
-}
-
-async function rotateSession(fingerprint: string): Promise<boolean> {
-  if (!rotateRequest) {
-    rotateRequest = apiFetch("/auth/token/rotate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fingerprint }),
-    }).then(response => response.ok).catch(() => false).finally(() => { rotateRequest = null; });
-  }
-  return rotateRequest;
-}
-
-async function getCurrentUser(fingerprint: string): Promise<User | null> {
-  let response = await apiFetch("/v1/me");
-  if (response.status === 401) {
-    if (!(await rotateSession(fingerprint))) return null;
-    response = await apiFetch("/v1/me");
-  }
-  if (!response.ok) return null;
-  return response.json() as Promise<User>;
-}
 
 type AuthStatus = "checking" | "authenticated" | "unauthenticated";
 type AuthContextValue = {
