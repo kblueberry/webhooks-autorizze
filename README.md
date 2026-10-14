@@ -1,75 +1,58 @@
-# Getting Started with Create React App
+# Webhooks authorization
 
-## Project structure
+Односторінковий застосунок на React і TypeScript для автентифікації користувача та перегляду вебхуків. Архітектура організована за принципами Feature-Sliced Design (FSD): код згрупований навколо функціональних фіч, а сторінки та app-рівень збирають їх у застосунок.
 
-The source is organized around application setup and user-facing features:
+## Структура
 
 ```text
 src/
-├── app/                    # Application composition and app-level tests
+├── app/                    # Композиція застосунку та маршрутизація
 ├── features/
-│   ├── auth/               # Login UI, validation, and feature styles
-│   └── webhooks/           # Webhooks list/table UI
-├── mocks/                  # Shared MSW handlers and browser/node setup
-├── styles/                 # Global styles
-├── index.tsx               # Browser entry point
-└── reportWebVitals.ts
+│   ├── auth/               # Вхід, стан авторизації та auth API
+│   └── webhooks/           # Список вебхуків, пошук і пагінація
+├── mocks/                  # MSW handlers і налаштування моків
+├── pages/                  # Сторінки входу та вебхуків
+├── styles/                 # Глобальні стилі
+└── index.tsx               # Точка входу
 ```
 
-Keep feature-specific code together inside its feature folder. When a feature
-grows, add its `hooks/`, `types/`, or `ui/` subfolders there;
-avoid creating empty generic folders before they have a clear owner. Put code
-in a shared folder only when multiple features actually use it. `app/` should
-compose features and own application-wide providers and routing, while
-`mocks/` remains the development/test API boundary.
+Фічі містять власні `api/`, `hooks/`, `types/`, `ui/` та `config/` за потреби. Зовнішній код використовує публічний `index.ts` фічі, а внутрішні модулі імпортують один одного напряму всередині своєї фічі.
 
-## Available Scripts
+## Ключові рішення
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+- **Авторизація:** `AuthProvider` зберігає користувача та статус сесії; `useAuth` надає операції входу й виходу сторінкам і компонентам.
+- **API авторизації:** мережеві функції `apiFetch`, `getCsrfToken`, `getCurrentUser` і `rotateSession` розділені на окремі файли в `features/auth/api/`. Хук керує станом UI, а API-модулі виконують запити.
+- **CSRF:** `apiFetch` додає заголовок `X-Requested-With`, додає CSRF-токен до POST/PUT запитів і оновлює токен та повторює запит при відповіді `419`.
+- **Сесія:** клієнт зберігає fingerprint пристрою в `localStorage`. Після `401` запит поточного користувача пробує поновити сесію через `rotateSession`.
+- **Вебхуки:** `useWebhooks` завантажує сторінки даних, керує пошуком, пагінацією та станом помилки/завантаження. API-запит винесено до `features/webhooks/api/`.
+- **Моки:** MSW обробляє auth і webhooks API локально, що дає змогу запускати застосунок без бекенду.
 
-## Available Scripts
+## Запуск
 
-In the project directory, you can run:
+Потрібен Node.js та npm.
 
-### `npm start`
+```bash
+npm install
+REACT_APP_API_MOCKING=enabled npm start
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Застосунок відкриється за адресою [http://localhost:3000](http://localhost:3000).
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-## Mock authentication
-
-Start the app with MSW enabled (`REACT_APP_API_MOCKING=enabled npm start`). Use these test credentials:
+Демо-облікові дані:
 
 - Email: `demo@example.com`
 - Password: `goo_fFF234_r`
 
-The mock session lasts 30 seconds. The client stores only its device fingerprint in local storage; session and device tokens are held by the mock server and in memory during login, respectively.
+Мокова сесія діє 30 секунд.
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Команди
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+- `npm start` — запуск у режимі розробки.
+- `npm run build` — production-збірка.
+- `npm test` — запуск тестів Create React App у watch-режимі.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+## Поточний стан і наступні кроки
 
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+- **Пошук вебхуків не реалізовано:**
+- **Редагування вебхука не завершено:** кнопка «Редагувати» наразі не відкриває форму. Потрібно додати форму редагування, збереження змін через API та відповідний UI-стан.
+- **Автотести не додані:** потрібно покрити тестами вхід і відновлення сесії, пошук і пагінацію вебхуків, а також стани помилок.
