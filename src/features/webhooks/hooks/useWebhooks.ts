@@ -21,8 +21,8 @@ export function useWebhooks(onLogout: () => Promise<void>) {
       .then(result => {
         if (!active) return;
         setWebhooks(result.items);
-        setPage(result.pages.current);
-        setLastPage(result.pages.last);
+        setPage(result.pages?.current ?? page);
+        setLastPage(result.pages?.last ?? Math.max(1, Math.ceil(result.total / PAGE_SIZE)));
       })
       .catch(reason => {
         if (!active) return;

@@ -9,7 +9,7 @@ export type TWebhook = {
 export type TWebhookPaginatedDataResponse = {
   items: TWebhook[];
   total: number;
-  pages: {
+  pages?: {
     current: number;
     last: number;
   };
